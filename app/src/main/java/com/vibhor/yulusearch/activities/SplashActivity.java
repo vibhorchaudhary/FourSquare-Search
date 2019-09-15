@@ -64,12 +64,9 @@ public class SplashActivity extends AppCompatActivity {
 
 
     private void init() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startActivity(new Intent(SplashActivity.this, MapsActivity.class));
-                finish();
-            }
+        new Handler().postDelayed(() -> {
+            startActivity(new Intent(SplashActivity.this, MapsActivity.class));
+            finish();
         }, 2000);
     }
 
@@ -132,12 +129,9 @@ public class SplashActivity extends AppCompatActivity {
             builder = new android.app.AlertDialog.Builder(this);
         }
         builder.setTitle(getResources().getString(R.string.accept_permissions)).setMessage(getResources().getString(R.string.accept_all_permissions))
-                .setPositiveButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (!needRequestPermissions()) {
-                            init();
-                        }
+                .setPositiveButton(getResources().getString(R.string.ok), (dialogInterface, i) -> {
+                    if (!needRequestPermissions()) {
+                        init();
                     }
                 })
                 .setCancelable(false)

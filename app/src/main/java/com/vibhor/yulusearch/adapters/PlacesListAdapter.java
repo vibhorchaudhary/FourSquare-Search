@@ -46,12 +46,12 @@ public class PlacesListAdapter extends RecyclerView.Adapter<PlacesListAdapter.Vi
         return places.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
 
         @BindView(R.id.place_name_textview)
         TextView placeName;
 
-        public ViewHolder(View inflate) {
+        ViewHolder(View inflate) {
             super(inflate);
             ButterKnife.bind(this, inflate);
 

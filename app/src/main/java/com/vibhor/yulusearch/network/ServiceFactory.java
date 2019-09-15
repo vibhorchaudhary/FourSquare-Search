@@ -16,12 +16,10 @@ public class ServiceFactory {
     private Retrofit mRetrofit;
 
     public ServiceFactory(String base_url) {
-
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
         final OkHttpClient client = getHttpClient().build();
-
 
         mRetrofit = new Retrofit.Builder()
                 .baseUrl(base_url)
@@ -32,14 +30,11 @@ public class ServiceFactory {
     }
 
     private OkHttpClient.Builder getHttpClient() {
-
-
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.readTimeout(120, TimeUnit.SECONDS);
         httpClient.addInterceptor(chain -> {
             Request original = chain.request();
 
-            // Customize the request
             Request request = original.newBuilder()
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")

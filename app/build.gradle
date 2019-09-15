@@ -64,3 +64,5 @@ dependencies {
     implementation 'com.google.android.material:material:1.1.0-alpha10'
 
 }
+
+apply plugin: 'io.objectbox'

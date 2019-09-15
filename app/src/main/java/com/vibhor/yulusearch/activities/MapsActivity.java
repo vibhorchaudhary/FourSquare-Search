@@ -30,9 +30,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.gson.Gson;
 import com.vibhor.yulusearch.R;
 import com.vibhor.yulusearch.adapters.PlacesListAdapter;
 import com.vibhor.yulusearch.constants.NetworkConstants;
+import com.vibhor.yulusearch.entity.SearchResults;
+import com.vibhor.yulusearch.managers.DatabaseManager;
 import com.vibhor.yulusearch.model.PlacesResponse;
 import com.vibhor.yulusearch.model.Venues;
 import com.vibhor.yulusearch.network.ServiceFactory;
@@ -55,6 +58,7 @@ import rx.schedulers.Schedulers;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
 
     private GoogleMap mMap;
+
     private LatLng latLng;
 
     @BindView(R.id.map_centered_bt)
@@ -69,19 +73,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @BindView(R.id.search_et)
     AppCompatEditText searchEt;
 
-    private static final double DEFAULT_LATITUDE = 12.972442;
-    private static final double DEFAULT_LONGITUDE = 77.580643;
+    @BindView(R.id.nearby_search_rv)
+    RecyclerView nearBySearchRv;
 
-    private ServiceFactory serviceFactory;
-    private SimpleDateFormat simpleDateFormat;
-
-    private BottomSheetBehavior<View> sheetBehavior;
     @BindView(R.id.nearby_search_bs)
     View nearBySearchBs;
 
+    private DatabaseManager databaseManager;
+
+    private ServiceFactory serviceFactory;
+
+    private SimpleDateFormat simpleDateFormat;
+
+    private BottomSheetBehavior<View> sheetBehavior;
+
     private PlacesListAdapter placesListAdapter;
-    @BindView(R.id.nearby_search_rv)
-    RecyclerView nearBySearchRv;
+
 
     private final float[] markerColors = new float[]{
             BitmapDescriptorFactory.HUE_AZURE,
@@ -95,6 +102,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             BitmapDescriptorFactory.HUE_VIOLET,
             BitmapDescriptorFactory.HUE_YELLOW
     };
+
+    private static final double DEFAULT_LATITUDE = 12.972442;
+    private static final double DEFAULT_LONGITUDE = 77.580643;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         sheetBehavior = BottomSheetBehavior.from(nearBySearchBs);
         serviceFactory = new ServiceFactory(NetworkConstants.PLACES_BASE_URL);
-
+        databaseManager = new DatabaseManager();
         placesListAdapter = new PlacesListAdapter(new ArrayList<>());
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -147,7 +157,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 String searchQuery = searchEt.getText() != null ? searchEt.getText().toString() : null;
                 if (TextUtils.isEmpty(searchQuery)) {
-                    Toast.makeText(MapsActivity.this, "Search message cannot be empty", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, getResources().getString(R.string.search_error), Toast.LENGTH_LONG).show();
                 } else {
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     if (imm != null) {
@@ -208,7 +218,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void getAllNearByPlaces(LatLng latLng) {
 
         if (latLng == null) {
-            Toast.makeText(MapsActivity.this, "Something went wrong. Cannot detect your location!", Toast.LENGTH_LONG).show();
+            Toast.makeText(MapsActivity.this, getResources().getString(R.string.location_error_message), Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -225,17 +235,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .subscribe(new Observer<Response<PlacesResponse>>() {
                     @Override
                     public void onCompleted() {
-                        Log.d("YULU", "onCompleted");
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.d("YULU", "onError" + e.getMessage());
                     }
 
                     @Override
                     public void onNext(Response<PlacesResponse> placesResponseResponse) {
-                        Log.d("YULU", "onNext");
                         if (placesResponseResponse.code() == 200 && placesResponseResponse.body() != null) {
                             List<Venues> placeList = placesResponseResponse.body().getResponse().getVenues();
                             nearBySearchRv.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
@@ -245,6 +252,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             nearbyTv.setVisibility(View.VISIBLE);
                             sheetBehavior.setPeekHeight((int) getResources().getDimension(R.dimen.peek_height));
                             setMarkers(placeList);
+
+                            saveResultsInDatabase(placeList);
                         }
                     }
                 });
@@ -271,7 +280,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void searchPlacesNearby(LatLng latLng, String searchQuery) {
 
         if (latLng == null) {
-            Toast.makeText(MapsActivity.this, "Something went wrong. Cannot detect your location!", Toast.LENGTH_LONG).show();
+            Toast.makeText(MapsActivity.this, getResources().getString(R.string.location_error_message), Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -288,17 +297,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .subscribe(new Observer<Response<PlacesResponse>>() {
                     @Override
                     public void onCompleted() {
-                        Log.d("YULU", "onCompleted");
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.d("YULU", "onError" + e.getMessage());
                     }
 
                     @Override
                     public void onNext(Response<PlacesResponse> placesResponseResponse) {
-                        Log.d("YULU", "onNext");
                         if (placesResponseResponse.code() == 200 && placesResponseResponse.body() != null) {
                             List<Venues> placeList = placesResponseResponse.body().getResponse().getVenues();
                             if (placeList.size() == 0) {
@@ -312,6 +318,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             sheetBehavior.setPeekHeight((int) getResources().getDimension(R.dimen.peek_height));
                             setMarkers(placeList);
                             setCameraPosition(13);
+
+                            saveResultsInDatabase(placeList);
                         }
                     }
                 });
@@ -324,6 +332,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .bearing(0)
                 .build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+    }
+
+    private void saveResultsInDatabase(List<Venues> venues) {
+        List<SearchResults> searchResultsList = new ArrayList<>();
+        for (Venues venue : venues) {
+            SearchResults searchResults = new SearchResults();
+            searchResults.setVenueId(venue.getId());
+            searchResults.setVenueJson(new Gson().toJson(venue));
+            searchResultsList.add(searchResults);
+        }
+        if (searchResultsList.size() != 0) {
+            databaseManager.saveSearchResultsInDatabase(searchResultsList);
+        }
     }
 
 }
