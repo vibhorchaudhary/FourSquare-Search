@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Yulu Search</string>
+    <string name="title_activity_maps">Map</string>
+
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDZXGPhI8Ly_x6EGAyzKSUeYWel5V3C1L0</string>
+
+    <string name="grant_permission_toast">You need to grant all the permissions in order to use the application</string>
+    <string name="accept_permissions">Accept Permissions</string>
+    <string name="accept_all_permissions">You need to accept all the permissions in order to run this applications in your phone!</string>
+    <string name="ok">okay!</string>
+    <string name="search">Search..</string>
+
+    <string name="foursquare_client_id">WX0ODSTAG5ZCEOOZX3V2REPQVM5APHZQIDL0C0YFBJEKIWEE</string>
+    <string name="foursquare_client_secret">2F2QEQTYZ5M204TQZJDL4ADSM4GYSQDLPF20OVB41MQV010K</string>
+    <string name="choose_nearby_location">Nearby location details</string>
+
+
+</resources>
