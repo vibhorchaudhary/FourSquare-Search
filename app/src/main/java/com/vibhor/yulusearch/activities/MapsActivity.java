@@ -1,13 +1,20 @@
 package com.vibhor.yulusearch.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.appcompat.widget.AppCompatEditText;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -58,6 +65,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @BindView(R.id.choose_nearby_tv)
     TextView nearbyTv;
+
+    @BindView(R.id.search_et)
+    AppCompatEditText searchEt;
 
     private static final double DEFAULT_LATITUDE = 12.972442;
     private static final double DEFAULT_LONGITUDE = 77.580643;
@@ -133,6 +143,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mapFragment.getMapAsync(this);
         }
 
+        searchEt.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                String searchQuery = searchEt.getText() != null ? searchEt.getText().toString() : null;
+                if (TextUtils.isEmpty(searchQuery)) {
+                    Toast.makeText(MapsActivity.this, "Search message cannot be empty", Toast.LENGTH_LONG).show();
+                } else {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.hideSoftInputFromWindow(searchEt.getWindowToken(), 0);
+                    }
+                    searchPlacesNearby(latLng, searchQuery);
+                }
+                return true;
+            }
+            return false;
+        });
+
         getUserCurrentLocation();
     }
 
@@ -155,14 +182,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setMap() {
         if (latLng != null) {
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng)
-                    .zoom(15)
-                    .bearing(0)
-                    .build();
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
+            setCameraPosition(15);
             getAllNearByPlaces(latLng);
+            searchEt.setText("");
         }
     }
 
@@ -185,6 +207,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void getAllNearByPlaces(LatLng latLng) {
 
+        if (latLng == null) {
+            Toast.makeText(MapsActivity.this, "Something went wrong. Cannot detect your location!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         reloadDetails();
 
         String date = simpleDateFormat.format(new Date());
@@ -192,7 +219,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         serviceFactory.getBaseService()
                 .explorePlacesNearby(getResources().getString(R.string.foursquare_client_id), getResources().getString(R.string.foursquare_client_secret),
-                        date, latLngString, 250)
+                        date, latLngString, 500)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<Response<PlacesResponse>>() {
@@ -239,6 +266,64 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .icon(BitmapDescriptorFactory.defaultMarker(markerColors[new Random().nextInt(markerColors.length)])));
         }
 
+    }
+
+    private void searchPlacesNearby(LatLng latLng, String searchQuery) {
+
+        if (latLng == null) {
+            Toast.makeText(MapsActivity.this, "Something went wrong. Cannot detect your location!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        reloadDetails();
+
+        String date = simpleDateFormat.format(new Date());
+        String latLngString = latLng.latitude + "," + latLng.longitude;
+
+        serviceFactory.getBaseService()
+                .searchPlacesNearby(getResources().getString(R.string.foursquare_client_id), getResources().getString(R.string.foursquare_client_secret),
+                        date, latLngString, 2000, searchQuery)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Response<PlacesResponse>>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d("YULU", "onCompleted");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("YULU", "onError" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(Response<PlacesResponse> placesResponseResponse) {
+                        Log.d("YULU", "onNext");
+                        if (placesResponseResponse.code() == 200 && placesResponseResponse.body() != null) {
+                            List<Venues> placeList = placesResponseResponse.body().getResponse().getVenues();
+                            if (placeList.size() == 0) {
+                                Toast.makeText(MapsActivity.this, "Oh Damn! No results found!", Toast.LENGTH_LONG).show();
+                            }
+                            nearBySearchRv.setLayoutManager(new LinearLayoutManager(MapsActivity.this));
+                            placesListAdapter.updateList(placeList);
+                            nearBySearchRv.setAdapter(placesListAdapter);
+                            progressBar.setVisibility(View.GONE);
+                            nearbyTv.setVisibility(View.VISIBLE);
+                            sheetBehavior.setPeekHeight((int) getResources().getDimension(R.dimen.peek_height));
+                            setMarkers(placeList);
+                            setCameraPosition(13);
+                        }
+                    }
+                });
+    }
+
+    private void setCameraPosition(int zoom) {
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)
+                .zoom(zoom)
+                .bearing(0)
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
 }

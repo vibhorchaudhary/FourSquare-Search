@@ -12,4 +12,7 @@ public interface ApiServices {
     @GET("search")
     Observable<Response<PlacesResponse>> explorePlacesNearby(@Query("client_id") String clientId, @Query("client_secret") String clientSecret, @Query("v") String date, @Query("ll") String latLng, @Query("radius") int radius);
 
+    @GET("search")
+    Observable<Response<PlacesResponse>> searchPlacesNearby(@Query("client_id") String clientId, @Query("client_secret") String clientSecret, @Query("v") String date, @Query("ll") String latLng, @Query("radius") int radius, @Query("query") String query);
+
 }
