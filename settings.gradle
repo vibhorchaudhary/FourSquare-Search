@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name='Yulu Search'
+rootProject.name='FourSquare Search'

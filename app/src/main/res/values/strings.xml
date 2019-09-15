@@ -1,8 +1,7 @@
 <resources>
-    <string name="app_name">Yulu Search</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="app_name">FourSquare Search</string>
 
-    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDZXGPhI8Ly_x6EGAyzKSUeYWel5V3C1L0</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDu8q-jTxfQWo7Na-qz69A7lVp9uCW20vQ</string>
 
     <string name="grant_permission_toast">You need to grant all the permissions in order to use the application</string>
     <string name="accept_permissions">Accept Permissions</string>
@@ -15,5 +14,6 @@
     <string name="choose_nearby_location">Nearby location details</string>
     <string name="search_error">Search message cannot be empty</string>
     <string name="location_error_message">Something went wrong. Cannot detect your location!</string>
+    <string name="no_results">No results found!</string>
 
 </resources>

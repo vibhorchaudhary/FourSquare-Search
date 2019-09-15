@@ -2,21 +2,21 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#42C7F4">
+    android:background="#FB4777">
 
     <ImageView
         android:id="@+id/splash_iv"
-        android:layout_width="246dp"
-        android:layout_height="246dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:src="@drawable/yulu" />
+        android:src="@drawable/foursquare" />
 
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/splash_iv"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="-50dp"
         android:layout_marginBottom="50dp"
         android:theme="@style/AppTheme.WhiteAccent" />
 
