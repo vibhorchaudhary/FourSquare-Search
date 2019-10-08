@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">FourSquare Search</string>
 
-    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDu8q-jTxfQWo7Na-qz69A7lVp9uCW20vQ</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">Place your google maps key here!</string>
 
     <string name="grant_permission_toast">You need to grant all the permissions in order to use the application</string>
     <string name="accept_permissions">Accept Permissions</string>
@@ -9,8 +9,8 @@
     <string name="ok">okay!</string>
     <string name="search">Search..</string>
 
-    <string name="foursquare_client_id">WX0ODSTAG5ZCEOOZX3V2REPQVM5APHZQIDL0C0YFBJEKIWEE</string>
-    <string name="foursquare_client_secret">2F2QEQTYZ5M204TQZJDL4ADSM4GYSQDLPF20OVB41MQV010K</string>
+    <string name="foursquare_client_id">Place your four square client id here</string>
+    <string name="foursquare_client_secret">Place your four square client secret here</string>
     <string name="choose_nearby_location">Nearby location details</string>
     <string name="search_error">Search message cannot be empty</string>
     <string name="location_error_message">Something went wrong. Cannot detect your location!</string>
